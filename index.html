@@ -234,7 +234,7 @@ function toggleVoice(){voiceOn=!voiceOn;document.getElementById('voiceToggle').c
 let session=null,breathTimer=null,paused=false,phaseIdx=0,phaseLeft=0;
 function startSession(){
   show(med);activeGlow=0.9;screen.classList.add('med-mode');
-  initAudio();if(actx&&actx.state==='suspended')actx.resume();if(natureOn)buildNature(natureType);
+  initAudio();resumeAudio();if(natureOn)buildNature(natureType);
   const total=dur*60;document.getElementById('timer').textContent=fmt(total);
   document.getElementById('quote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
   const phases=TECHS[tech].phases;phaseIdx=0;phaseLeft=phases[0].t;
@@ -281,8 +281,9 @@ let actx=null,nodes=[],natureOn=true,natureType='rain',musicGain=null,audioStart
 function initAudio(){
   if(actx)return;
   try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return}
-  musicGain=actx.createGain();musicGain.gain.value=0.07;musicGain.connect(actx.destination);
+  musicGain=actx.createGain();musicGain.gain.value=0.9;musicGain.connect(actx.destination);
 }
+function resumeAudio(){if(actx&&actx.state==='suspended'){actx.resume()}}
 function buildNature(type){
   nodes.forEach(n=>{try{n.disconnect()}catch(e){}});nodes=[];
   if(!actx||type==='off')return;
@@ -290,20 +291,20 @@ function buildNature(type){
   for(let i=0;i<noiseLen;i++)data[i]=Math.random()*2-1;
   const src=actx.createBufferSource();src.buffer=buf;src.loop=true;
   const filter=actx.createBiquadFilter();
-  if(type==='rain'){filter.type='lowpass';filter.frequency.value=700;
-    const g=actx.createGain();g.gain.value=0.35;
-    const lfo=actx.createOscillator();lfo.frequency.value=0.3;const lg=actx.createGain();lg.gain.value=0.2;
+  if(type==='rain'){filter.type='lowpass';filter.frequency.value=900;
+    const g=actx.createGain();g.gain.value=0.7;
+    const lfo=actx.createOscillator();lfo.frequency.value=0.3;const lg=actx.createGain();lg.gain.value=0.15;
     lfo.connect(lg);lg.connect(g.gain);lfo.start();
     src.connect(filter).connect(g);g.connect(musicGain);nodes.push(src,filter,g,lfo,lg);}
-  else if(type==='ocean'){filter.type='lowpass';filter.frequency.value=400;
-    const lfo=actx.createOscillator();lfo.frequency.value=0.08;const lg=actx.createGain();lg.gain.value=0.35;
+  else if(type==='ocean'){filter.type='lowpass';filter.frequency.value=500;
+    const lfo=actx.createOscillator();lfo.frequency.value=0.08;const lg=actx.createGain();lg.gain.value=0.25;
     lfo.connect(lg);lg.connect(musicGain.gain);lfo.start();
     src.connect(filter);filter.connect(musicGain);nodes.push(src,filter,lfo,lg);}
-  else if(type==='wind'){filter.type='lowpass';filter.frequency.value=600;
-    const lfo=actx.createOscillator();lfo.frequency.value=0.05;const lg=actx.createGain();lg.gain.value=0.3;
+  else if(type==='wind'){filter.type='lowpass';filter.frequency.value=700;
+    const lfo=actx.createOscillator();lfo.frequency.value=0.05;const lg=actx.createGain();lg.gain.value=0.2;
     lfo.connect(lg);lg.connect(musicGain.gain);lfo.start();
     src.connect(filter);filter.connect(musicGain);nodes.push(src,filter,lfo,lg);}
-  else if(type==='forest'){filter.type='bandpass';filter.frequency.value=800;
+  else if(type==='forest'){filter.type='bandpass';filter.frequency.value=900;
     src.connect(filter);filter.connect(musicGain);
     // birds: random chirps
     const chirp=setInterval(()=>{if(!natureOn)return;chirpBird()},1800);chirp._id=1;
@@ -312,8 +313,8 @@ function buildNature(type){
   // soft warm pad underneath
   try{
     const pad=actx.createOscillator();pad.type='sine';pad.frequency.value=180;
-    const padg=actx.createGain();padg.gain.value=0.05;
-    const lfo2=actx.createOscillator();lfo2.frequency.value=0.1;const lg2=actx.createGain();lg2.gain.value=0.02;
+    const padg=actx.createGain();padg.gain.value=0.12;
+    const lfo2=actx.createOscillator();lfo2.frequency.value=0.1;const lg2=actx.createGain();lg2.gain.value=0.05;
     lfo2.connect(lg2);lg2.connect(padg.gain);
     pad.connect(padg);padg.connect(musicGain);pad.start();lfo2.start();
     nodes.push(pad,padg,lfo2,lg2);
@@ -326,7 +327,7 @@ function chirpBird(){if(!actx||!natureOn)return;const o=actx.createOscillator(),
   g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+0.12);
   o.connect(g);g.connect(musicGain);o.start();o.stop(actx.currentTime+0.15)}
 function toggleNature(){
-  initAudio();if(actx&&actx.state==='suspended')actx.resume();
+  initAudio();resumeAudio();
   natureOn=!natureOn;document.getElementById('natureToggle').classList.toggle('on',natureOn);
   if(natureOn){buildNature(natureType)}else{buildNature('off')}}
 document.getElementById('natureSel').addEventListener('change',e=>{natureType=e.target.value;
