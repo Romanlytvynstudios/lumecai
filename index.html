@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumecai — Find Your Inner Light</title>
+<style>
+  :root{
+    --bg:#0E0A14; --bg2:#1A1226; --card:#231836; --card2:#2A1D40;
+    --amber:#F5C26B; --gold:#F0B429; --soft:#A88BB8;
+    --text:#F5EDE0; --muted:#9B8CA8; --line:#332447;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+       background:linear-gradient(160deg,#0E0A14,#1A1226 60%,#221534);color:var(--text);
+       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px}
+  .stage{width:100%;max-width:1200px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .copy .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:16px}
+  .copy h1{font-size:clamp(34px,4.5vw,52px);line-height:1.05;font-weight:700;letter-spacing:-1px;margin-bottom:20px}
+  .copy h1 em{font-style:normal;background:linear-gradient(90deg,var(--gold),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .copy p{color:var(--muted);font-size:17px;max-width:26em;margin-bottom:30px;line-height:1.6}
+  .copy .features{display:flex;flex-direction:column;gap:14px}
+  .copy .feat{display:flex;gap:12px;align-items:center;font-size:14.5px;color:var(--text)}
+  .copy .feat .dot{width:26px;height:26px;border-radius:50%;background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.35);display:grid;place-items:center;color:var(--gold);font-size:12px;flex-shrink:0}
+
+  .phone-wrap{display:flex;justify-content:center}
+  .phone{width:350px;height:720px;background:var(--bg);border-radius:50px;border:10px solid #000;
+         box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px #2a2a2a;overflow:hidden;position:relative}
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:26px;background:#000;border-radius:14px;z-index:30}
+  .screen{position:relative;width:100%;height:100%;overflow:hidden}
+  .screen canvas{position:absolute;inset:0;width:100%;height:100%}
+
+  .home{padding:70px 24px 30px;display:flex;flex-direction:column;gap:20px;height:100%}
+  .home .top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
+  .home .hello{font-size:25px;font-weight:700}
+  .home .hello span{display:block;font-size:13px;color:var(--muted);font-weight:400;margin-top:4px}
+  .goal-title{font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+  .goals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .goal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;transition:.15s}
+  .goal:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .goal.on{border-color:var(--gold);background:linear-gradient(135deg,rgba(240,180,41,.2),rgba(168,139,184,.12))}
+  .goal .ico{font-size:20px;margin-bottom:8px}
+  .goal .nm{font-size:13px;font-weight:600}
+  .goal .ct{font-size:10.5px;color:var(--muted)}
+  .tech-label{font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
+  .tech{display:flex;gap:8px;flex-wrap:wrap}
+  .tech button{background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:12px;
+               padding:9px 14px;font-size:12px;cursor:pointer;transition:.15s}
+  .tech button:hover{border-color:var(--gold)}
+  .tech button.on{background:var(--gold);color:#231536;border-color:var(--gold);font-weight:600}
+  .duration{display:flex;gap:8px}
+  .duration button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px;font-size:12px;cursor:pointer}
+  .duration button.on{background:var(--gold);color:#231536;border-color:var(--gold);font-weight:600}
+  .voice-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);
+             border-radius:16px;padding:12px 14px;font-size:13px}
+  .voice-row .toggle{width:44px;height:24px;border-radius:12px;background:var(--line);position:relative;cursor:pointer}
+  .voice-row .toggle.on{background:var(--gold)}
+  .voice-row .toggle i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
+  .voice-row .toggle.on i{left:22px}
+  .big-start{background:linear-gradient(135deg,var(--gold),var(--amber));color:#231536;border:none;border-radius:18px;
+             padding:18px;font-weight:800;font-size:16px;width:100%;cursor:pointer;margin-top:auto}
+  .nav{display:flex;justify-content:space-around;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}
+  .nav span{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .nav .on{color:var(--gold)}
+  .nav .ic{font-size:18px}
+
+  .med{display:none;padding:70px 24px 40px;height:100%;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .med .ring{width:240px;height:240px;border-radius:50%;position:relative;display:grid;place-items:center;
+             transition:transform .1s;filter:drop-shadow(0 0 30px rgba(240,180,41,.25))}
+  .med .ring-inner{width:200px;height:200px;border-radius:50%;background:var(--bg2);display:grid;place-items:center;flex-direction:column;border:1px solid var(--line)}
+  .med .time{font-size:42px;font-weight:300;letter-spacing:2px}
+  .med .breath{font-size:20px;color:var(--amber);margin-top:8px;font-weight:500;min-height:26px}
+  .med .tech-name{margin-top:30px;font-size:12px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+  .med .quote{margin-top:8px;font-size:13px;color:var(--muted);font-style:italic;max-width:16em;line-height:1.5}
+  .med .controls{display:flex;gap:20px;margin-top:32px;align-items:center}
+  .med .btn-round{width:62px;height:62px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--gold),var(--amber));
+                  color:#231536;font-size:22px;cursor:pointer;display:grid;place-items:center}
+  .med .btn-round.ghost{background:var(--card);color:var(--text);border:1px solid var(--line);width:46px;height:46px;font-size:15px}
+
+  @media(max-width:900px){.stage{grid-template-columns:1fr;gap:40px}.copy{text-align:center}.copy p{margin:0 auto 30px}.copy .features{align-items:center}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="copy">
+    <div class="eyebrow">AI Meditation · Find your inner light</div>
+    <h1>Your calm, <em>illuminated.</em></h1>
+    <p>Lumecai guides you into stillness with a warm voice, gentle breathwork and soft light. Let the glow lead you home — one breath at a time.</p>
+    <div class="features">
+      <div class="feat"><span class="dot">✦</span> 5 breathing techniques, guided by a calm voice</div>
+      <div class="feat"><span class="dot">◐</span> AI suggests the right technique for your goal</div>
+      <div class="feat"><span class="dot">◎</span> Sessions from 2 to 20 minutes</div>
+    </div>
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+        <canvas id="glow"></canvas>
+
+        <!-- HOME -->
+        <div class="home" id="home">
+          <div class="top"><span>9:41</span><span>🔋</span></div>
+          <div class="hello">What do you need?<span>Lumecai will guide your breath</span></div>
+          <div class="goal-title">I want to…</div>
+          <div class="goals">
+            <div class="goal on" id="g-relax" data-id="relax" onclick="pickGoal('relax')"><div class="ico">🌿</div><div class="nm">Relax</div><div class="ct">Unwind & calm</div></div>
+            <div class="goal" id="g-sleep" data-id="sleep" onclick="pickGoal('sleep')"><div class="ico">🌙</div><div class="nm">Sleep</div><div class="ct">Drift off</div></div>
+            <div class="goal" id="g-focus" data-id="focus" onclick="pickGoal('focus')"><div class="ico">🎯</div><div class="nm">Focus</div><div class="ct">Sharpen mind</div></div>
+            <div class="goal" id="g-energy" data-id="energy" onclick="pickGoal('energy')"><div class="ico">⚡</div><div class="nm">Energy</div><div class="ct">Recharge</div></div>
+          </div>
+          <div class="tech-label">Technique</div>
+          <div class="tech">
+            <button class="on" data-t="equal" onclick="pickTech('equal')">Equal</button>
+            <button data-t="box" onclick="pickTech('box')">Box</button>
+            <button data-t="478" onclick="pickTech('478')">4-7-8</button>
+            <button data-t="wim" onclick="pickTech('wim')">Wim Hof</button>
+          </div>
+          <div class="tech-label" style="margin-top:12px">Duration</div>
+          <div class="duration">
+            <button data-d="2" onclick="pickDur(2)">2 min</button>
+            <button class="on" data-d="5" onclick="pickDur(5)">5 min</button>
+            <button data-d="10" onclick="pickDur(10)">10 min</button>
+          </div>
+          <div class="tech-label" style="margin-top:12px">Voice guide</div>
+          <div class="voice-row"><span>🗣️ Calm female voice</span><div class="toggle on" id="voiceToggle" onclick="toggleVoice()"><i></i></div></div>
+          <div class="voice-row" style="margin-top:10px"><span>🌧️ Nature sound</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select id="natureSel" style="background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:6px;font-size:12px">
+                <option value="off">Off</option><option value="rain" selected>Rain</option><option value="ocean">Ocean</option><option value="wind">Wind</option><option value="forest">Forest</option>
+              </select>
+              <div class="toggle on" id="natureToggle" onclick="toggleNature()"><i></i></div>
+            </div>
+          </div>
+          <button class="big-start" onclick="startSession()">Begin breathwork →</button>
+          <div class="nav">
+            <span class="on"><span class="ic">☾</span>Home</span><span><span class="ic">❋</span>Sessions</span><span><span class="ic">☰</span>Stats</span><span><span class="ic">◉</span>You</span>
+          </div>
+        </div>
+
+        <!-- MEDITATION -->
+        <div class="med" id="med">
+          <div class="ring" id="ring"><div class="ring-inner">
+            <div class="time" id="timer">05:00</div>
+            <div class="breath" id="breath">Ready…</div>
+          </div></div>
+          <div class="tech-name" id="techName">Equal breathing</div>
+          <div class="quote" id="quote">"With every breath, you return to yourself."</div>
+          <div class="controls">
+            <button class="btn-round ghost" onclick="togglePause()">⏸</button>
+            <button class="btn-round" onclick="endMed()">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const screen=document.querySelector('.screen'),home=document.getElementById('home'),med=document.getElementById('med');
+const glow=document.getElementById('glow'),ctx=glow.getContext('2d');
+let w,h;function size(){w=glow.width=glow.clientWidth;h=glow.height=glow.clientHeight}size();window.addEventListener('resize',size);
+let t=0,activeGlow=0.35,breathPhase=1,breathScale=1;
+const particles=[];for(let i=0;i<60;i++)particles.push({x:Math.random(),y:Math.random(),r:Math.random()*2+1,s:Math.random()*0.002+0.0005});
+function drawGlow(){t+=0.01;
+  ctx.clearRect(0,0,w,h);
+  const gx=w*0.5+Math.sin(t)*w*0.1,gy=h*0.4+Math.cos(t*0.7)*h*0.1,r=Math.min(w,h)*activeGlow;
+  const g=ctx.createRadialGradient(gx,gy,0,gx,gy,r);
+  g.addColorStop(0,`rgba(240,180,41,${0.28*activeGlow})`);g.addColorStop(1,'rgba(14,10,20,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  // breathing particles (fireflies) — they spread on inhale, contract on exhale
+  const spread=breathPhase;
+  ctx.fillStyle=`rgba(245,194,107,${0.5*activeGlow})`;
+  for(const p of particles){
+    p.x+=p.s*Math.sin(t+p.y*10)*spread*3;
+    p.y+=p.s*Math.cos(t+p.x*10)*spread*3;
+    if(p.x<0)p.x=1;if(p.x>1)p.x=0;if(p.y<0)p.y=1;if(p.y>1)p.y=0;
+    const cx=p.x*w,cy=p.y*h;
+    ctx.globalAlpha=0.4+0.4*spread;
+    ctx.beginPath();ctx.arc(cx,cy,p.r*spread+0.5,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  requestAnimationFrame(drawGlow)}
+drawGlow();
+
+// ---- State ----
+let goal='relax',tech='equal',dur=5,voiceOn=true;
+const GOALS={relax:{tech:'equal',name:'Relax'},sleep:{tech:'478',name:'Sleep'},focus:{tech:'box',name:'Focus'},energy:{tech:'wim',name:'Energy'}};
+const TECHS={
+  equal:{name:'Equal Breathing',phases:[{t:5,label:'Breathe in'},{t:5,label:'Breathe out'}]},
+  box:{name:'Box Breathing',phases:[{t:4,label:'Breathe in'},{t:4,label:'Hold'},{t:4,label:'Breathe out'},{t:4,label:'Hold'}]},
+  478:{name:'4-7-8 Relaxing Breath',phases:[{t:4,label:'Breathe in'},{t:7,label:'Hold'},{t:8,label:'Breathe out'}]},
+  wim:{name:'Wim Hof',phases:[{t:3,label:'Breathe in'},{t:1.5,label:'Breathe out'}]},
+};
+const QUOTES=["With every breath, you return to yourself.","You are safe. You are here.","Let the breath carry the tension away.","Stillness is your home.","This moment is enough."];
+
+// ---- Voice (Web Speech API) ----
+let voice=null;
+function initVoice(){if(!('speechSynthesis' in window))return;
+  const vs=speechSynthesis.getVoices();
+  // prefer a female English voice
+  voice=vs.find(v=>/en[-_]/i.test(v.lang)&&/female|samantha|victoria|karen|zira|google uk english female|female/i.test(v.name))||
+        vs.find(v=>/en[-_]US/i.test(v.lang))||vs[0];
+  if(speechSynthesis.onvoiceschanged===undefined){speechSynthesis.onvoiceschanged=()=>{initVoice()}}}
+initVoice();
+function speak(txt){if(!voiceOn||!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(txt);u.voice=voice;u.rate=0.85;u.pitch=1.05;u.volume=1;
+  speechSynthesis.speak(u)}
+function stopSpeak(){if('speechSynthesis' in window)speechSynthesis.cancel()}
+
+// ---- UI ----
+function show(id){home.style.display='none';med.style.display='none';id.style.display=id===med?'flex':'block'}
+function pickGoal(g){goal=g;document.querySelectorAll('.goal').forEach(x=>x.classList.remove('on'));document.getElementById('g-'+g).classList.add('on');
+  // AI suggests technique for the goal
+  pickTech(GOALS[g].tech,true)}
+function pickTech(tt,silent){tech=tt;document.querySelectorAll('.tech button').forEach(b=>b.classList.toggle('on',b.dataset.t===tt));
+  document.getElementById('techName').textContent=TECHS[tt].name}
+function pickDur(d){dur=d;document.querySelectorAll('.duration button').forEach(b=>b.classList.toggle('on',+b.dataset.d===d))}
+function toggleVoice(){voiceOn=!voiceOn;document.getElementById('voiceToggle').classList.toggle('on',voiceOn);
+  if(voiceOn){speak("Welcome back. Shall we begin?")}else stopSpeak()}
+
+// ---- Session ----
+let session=null,breathTimer=null,paused=false,phaseIdx=0,phaseLeft=0;
+function startSession(){
+  show(med);activeGlow=0.9;
+  initAudio();if(actx&&actx.state==='suspended')actx.resume();if(natureOn)buildNature(natureType);
+  const total=dur*60;document.getElementById('timer').textContent=fmt(total);
+  document.getElementById('quote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  const phases=TECHS[tech].phases;phaseIdx=0;phaseLeft=phases[0].t;
+  paused=false;
+  clearInterval(session);clearInterval(breathTimer);
+  // breath phase timer
+  const ring=document.getElementById('ring');
+  let scale=1;
+  breathTimer=setInterval(()=>{
+    if(paused)return;
+    const p=phases[phaseIdx];
+    speak(p.label);
+    document.getElementById('breath').textContent=p.label;
+    // animate ring + particles on in/out
+    const isIn=p.label.toLowerCase().includes('in');
+    breathPhase = isIn?1:0.4;
+    ring.style.transform=`scale(${isIn?1.12:0.92})`;
+    phaseLeft--;
+    if(phaseLeft<=0){phaseIdx=(phaseIdx+1)%phases.length;phaseLeft=phases[phaseIdx].t}
+  },1000);
+  // countdown timer
+  let left=total;
+  session=setInterval(()=>{if(paused)return;left--;if(left<0){finishSession();return}
+    document.getElementById('timer').textContent=fmt(left)},1000);
+  document.getElementById('breath').textContent='Breathe in…';speak('Breathe in');
+}
+function finishSession(){clearInterval(session);clearInterval(breathTimer);
+  document.getElementById('breath').textContent='Complete ✨';speak('Beautiful. Session complete. Namaste.');paused=true;
+  setTimeout(()=>{paused=false;endMed()},2500)}
+function togglePause(){paused=!paused;const b=document.querySelector('#med .btn-round.ghost');
+  b.textContent=paused?'▶':'⏸';if(paused)stopSpeak();else {const ph=TECHS[tech].phases[phaseIdx];speak(ph.label)}}
+function endMed(){clearInterval(session);clearInterval(breathTimer);stopSpeak();paused=false;
+  buildNature('off');breathPhase=1;
+  document.getElementById('ring').style.transform='scale(1)';show(home);activeGlow=0.35}
+function fmt(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
+
+// ---- Nature sounds (Web Audio API - no files) ----
+let actx=null,nodes=[],natureOn=true,natureType='rain',musicGain=null,audioStart=false;
+function initAudio(){
+  if(actx)return;
+  try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return}
+  musicGain=actx.createGain();musicGain.gain.value=0.12;musicGain.connect(actx.destination);
+}
+function buildNature(type){
+  nodes.forEach(n=>{try{n.disconnect()}catch(e){}});nodes=[];
+  if(!actx||type==='off')return;
+  const noiseLen=actx.sampleRate*2,buf=actx.createBuffer(1,noiseLen,actx.sampleRate),data=buf.getChannelData(0);
+  for(let i=0;i<noiseLen;i++)data[i]=Math.random()*2-1;
+  const src=actx.createBufferSource();src.buffer=buf;src.loop=true;
+  const filter=actx.createBiquadFilter();
+  if(type==='rain'){filter.type='bandpass';filter.frequency.value=1200;filter.Q.value=0.5;
+    const g=actx.createGain();g.gain.value=0.5;
+    const lfo=actx.createOscillator();lfo.frequency.value=0.3;const lg=actx.createGain();lg.gain.value=0.2;
+    lfo.connect(lg);lg.connect(g.gain);lfo.start();
+    src.connect(filter).connect(g);g.connect(musicGain);nodes.push(src,filter,g,lfo,lg);}
+  else if(type==='ocean'){filter.type='lowpass';filter.frequency.value=400;
+    const lfo=actx.createOscillator();lfo.frequency.value=0.08;const lg=actx.createGain();lg.gain.value=0.35;
+    lfo.connect(lg);lg.connect(musicGain.gain);lfo.start();
+    src.connect(filter);filter.connect(musicGain);nodes.push(src,filter,lfo,lg);}
+  else if(type==='wind'){filter.type='lowpass';filter.frequency.value=600;
+    const lfo=actx.createOscillator();lfo.frequency.value=0.05;const lg=actx.createGain();lg.gain.value=0.3;
+    lfo.connect(lg);lg.connect(musicGain.gain);lfo.start();
+    src.connect(filter);filter.connect(musicGain);nodes.push(src,filter,lfo,lg);}
+  else if(type==='forest'){filter.type='bandpass';filter.frequency.value=800;
+    src.connect(filter);filter.connect(musicGain);
+    // birds: random chirps
+    const chirp=setInterval(()=>{if(!natureOn)return;chirpBird()},1800);chirp._id=1;
+    nodes.push(src,filter);
+    window._chirp=chirp;}
+  src.start();
+}
+function chirpBird(){if(!actx||!natureOn)return;const o=actx.createOscillator(),g=actx.createGain();
+  o.type='sine';o.frequency.value=2200+Math.random()*800;g.gain.setValueAtTime(0.0001,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.08,actx.currentTime+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+0.12);
+  o.connect(g);g.connect(musicGain);o.start();o.stop(actx.currentTime+0.15)}
+function toggleNature(){
+  initAudio();if(actx&&actx.state==='suspended')actx.resume();
+  natureOn=!natureOn;document.getElementById('natureToggle').classList.toggle('on',natureOn);
+  if(natureOn){buildNature(natureType)}else{buildNature('off')}}
+document.getElementById('natureSel').addEventListener('change',e=>{natureType=e.target.value;
+  if(natureOn)buildNature(natureType)});
+
+</script>
+</body>
+</html>
