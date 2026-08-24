@@ -245,11 +245,14 @@ function startSession(){
     const isIn=p.label.toLowerCase().includes('in');
     breathPhase = isIn?1:0.4;
     ring.style.transform=`scale(${isIn?1.12:0.92})`;
-    // speak ONCE per phase transition, not every second
     phaseLeft--;
-    if(phaseLeft<=0){phaseIdx=(phaseIdx+1)%phases.length;phaseLeft=phases[phaseIdx].t;
+    if(phaseLeft<=0){
+      // transition to next phase and SPEAK it once at its start
+      phaseIdx=(phaseIdx+1)%phases.length;phaseLeft=phases[phaseIdx].t;
       const np=phases[phaseIdx];
-      speakCmd(np.label.toLowerCase().includes('in')?'in':np.label.toLowerCase().includes('hold')?'hold':'out');}
+      document.getElementById('breath').textContent=np.label;
+      speakCmd(np.label.toLowerCase().includes('in')?'in':np.label.toLowerCase().includes('hold')?'hold':'out');
+    }
   },1000);
   // countdown timer
   let left=total;
