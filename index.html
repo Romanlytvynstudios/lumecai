@@ -198,27 +198,20 @@ const TECHS={
 };
 const QUOTES=["With every breath, you return to yourself.","You are safe. You are here.","Let the breath carry the tension away.","Stillness is your home.","This moment is enough."];
 
-// ---- Voice (Web Speech API) ----
-let voice=null;
-function initVoice(){if(!('speechSynthesis' in window))return;
-  const vs=speechSynthesis.getVoices();
-  // Prefer natural, warm female English voices; fall back through a ranked list
-  const preferred=['Samantha','Victoria','Karen','Zira','Aria','Jenny','Sonia','Google US English','Microsoft Aria','Female'];
-  voice = preferred.map(n=>vs.find(v=>v.name.includes(n)&&/en/i.test(v.lang))).find(Boolean)
-       || vs.find(v=>/en[-_]US/i.test(v.lang)&&/female/i.test(v.name))
-       || vs.find(v=>/en[-_]US/i.test(v.lang))
-       || vs.find(v=>/en/i.test(v.lang))
-       || vs[0];
-  if(speechSynthesis.onvoiceschanged===undefined){speechSynthesis.onvoiceschanged=()=>initVoice()}}
-initVoice();
-function speak(txt){if(!voiceOn||!('speechSynthesis' in window))return;
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(txt);u.voice=voice;
-  u.rate=0.82;u.pitch=1.08;u.volume=1;
-  // gentler prosody
-  u.lang=voice?voice.lang:'en-US';
-  speechSynthesis.speak(u)}
-function stopSpeak(){if('speechSynthesis' in window)speechSynthesis.cancel()}
+// ---- Premium Voice (real audio files) ----
+const AUDIO_BASE='audio/';
+let voiceAudios={};
+function preloadVoice(){
+  const files={in:'breathe_in.mp3',out:'breathe_out.mp3',hold:'hold.mp3',begin:'begin.mp3',complete:'complete.mp3'};
+  Object.entries(files).forEach(([k,f])=>{const a=new Audio(AUDIO_BASE+f);a.preload='auto';voiceAudios[k]=a});
+}
+preloadVoice();
+function speakCmd(cmd){ // 'in'|'out'|'hold'|'begin'|'complete'
+  if(!voiceOn)return;
+  const a=voiceAudios[cmd];if(!a)return;
+  a.currentTime=0;a.play().catch(()=>{});
+}
+function stopSpeak(){Object.values(voiceAudios).forEach(a=>{a.pause();a.currentTime=0})}
 
 // ---- UI ----
 function show(id){home.style.display='none';med.style.display='none';id.style.display=id===med?'flex':'block'}
@@ -229,7 +222,7 @@ function pickTech(tt,silent){tech=tt;document.querySelectorAll('.tech button').f
   document.getElementById('techName').textContent=TECHS[tt].name}
 function pickDur(d){dur=d;document.querySelectorAll('.duration button').forEach(b=>b.classList.toggle('on',+b.dataset.d===d))}
 function toggleVoice(){voiceOn=!voiceOn;document.getElementById('voiceToggle').classList.toggle('on',voiceOn);
-  if(voiceOn){speak("Welcome back. Shall we begin?")}else stopSpeak()}
+  if(voiceOn){speakCmd("begin")}else stopSpeak()}
 
 // ---- Session ----
 let session=null,breathTimer=null,paused=false,phaseIdx=0,phaseLeft=0;
@@ -247,7 +240,7 @@ function startSession(){
   breathTimer=setInterval(()=>{
     if(paused)return;
     const p=phases[phaseIdx];
-    speak(p.label);
+    speakCmd(p.label.toLowerCase().includes('in')?'in':p.label.toLowerCase().includes('hold')?'hold':'out');
     document.getElementById('breath').textContent=p.label;
     // animate ring + particles on in/out
     const isIn=p.label.toLowerCase().includes('in');
@@ -260,13 +253,13 @@ function startSession(){
   let left=total;
   session=setInterval(()=>{if(paused)return;left--;if(left<0){finishSession();return}
     document.getElementById('timer').textContent=fmt(left)},1000);
-  document.getElementById('breath').textContent='Breathe in…';speak('Breathe in');
+  document.getElementById('breath').textContent='Breathe in…';speakCmd('in');
 }
 function finishSession(){clearInterval(session);clearInterval(breathTimer);
-  document.getElementById('breath').textContent='Complete ✨';speak('Beautiful. Session complete. Namaste.');paused=true;
+  document.getElementById('breath').textContent='Complete ✨';speakCmd('complete');paused=true;
   setTimeout(()=>{paused=false;endMed()},2500)}
 function togglePause(){paused=!paused;const b=document.querySelector('#med .btn-round.ghost');
-  b.textContent=paused?'▶':'⏸';if(paused)stopSpeak();else {const ph=TECHS[tech].phases[phaseIdx];speak(ph.label)}}
+  b.textContent=paused?'▶':'⏸';if(paused)stopSpeak();else {const ph=TECHS[tech].phases[phaseIdx];speakCmd(ph.label.toLowerCase().includes('in')?'in':ph.label.toLowerCase().includes('hold')?'hold':'out')}}
 function endMed(){clearInterval(session);clearInterval(breathTimer);stopSpeak();paused=false;
   buildNature('off');breathPhase=1;screen.classList.remove('med-mode');
   document.getElementById('ring').style.transform='scale(1)';show(home);activeGlow=0.35}
@@ -277,7 +270,7 @@ let actx=null,nodes=[],natureOn=true,natureType='rain',musicGain=null,audioStart
 function initAudio(){
   if(actx)return;
   try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return}
-  musicGain=actx.createGain();musicGain.gain.value=0.12;musicGain.connect(actx.destination);
+  musicGain=actx.createGain();musicGain.gain.value=0.07;musicGain.connect(actx.destination);
 }
 function buildNature(type){
   nodes.forEach(n=>{try{n.disconnect()}catch(e){}});nodes=[];
@@ -286,8 +279,8 @@ function buildNature(type){
   for(let i=0;i<noiseLen;i++)data[i]=Math.random()*2-1;
   const src=actx.createBufferSource();src.buffer=buf;src.loop=true;
   const filter=actx.createBiquadFilter();
-  if(type==='rain'){filter.type='bandpass';filter.frequency.value=1200;filter.Q.value=0.5;
-    const g=actx.createGain();g.gain.value=0.5;
+  if(type==='rain'){filter.type='lowpass';filter.frequency.value=700;
+    const g=actx.createGain();g.gain.value=0.35;
     const lfo=actx.createOscillator();lfo.frequency.value=0.3;const lg=actx.createGain();lg.gain.value=0.2;
     lfo.connect(lg);lg.connect(g.gain);lfo.start();
     src.connect(filter).connect(g);g.connect(musicGain);nodes.push(src,filter,g,lfo,lg);}
@@ -305,6 +298,15 @@ function buildNature(type){
     const chirp=setInterval(()=>{if(!natureOn)return;chirpBird()},1800);chirp._id=1;
     nodes.push(src,filter);
     window._chirp=chirp;}
+  // soft warm pad underneath
+  try{
+    const pad=actx.createOscillator();pad.type='sine';pad.frequency.value=180;
+    const padg=actx.createGain();padg.gain.value=0.05;
+    const lfo2=actx.createOscillator();lfo2.frequency.value=0.1;const lg2=actx.createGain();lg2.gain.value=0.02;
+    lfo2.connect(lg2);lg2.connect(padg.gain);
+    pad.connect(padg);padg.connect(musicGain);pad.start();lfo2.start();
+    nodes.push(pad,padg,lfo2,lg2);
+  }catch(e){}
   src.start();
 }
 function chirpBird(){if(!actx||!natureOn)return;const o=actx.createOscillator(),g=actx.createGain();
