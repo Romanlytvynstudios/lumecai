@@ -203,15 +203,21 @@ const AUDIO_BASE='audio/';
 let voiceAudios={};
 function preloadVoice(){
   const files={in:'breathe_in.mp3',out:'breathe_out.mp3',hold:'hold.mp3',begin:'begin.mp3',complete:'complete.mp3'};
-  Object.entries(files).forEach(([k,f])=>{const a=new Audio(AUDIO_BASE+f);a.preload='auto';voiceAudios[k]=a});
+  Object.entries(files).forEach(([k,f])=>{const a=new Audio(AUDIO_BASE+f);a.preload='auto';a.volume=1;voiceAudios[k]=a});
 }
 preloadVoice();
+// Unlock audio on first user gesture (required by browsers for later plays)
+function unlockAudio(){
+  ['in','out','hold','begin','complete'].forEach(k=>{const a=voiceAudios[k];if(a&&a.paused){a.play().then(()=>{a.pause();a.currentTime=0}).catch(()=>{})}});
+}
+document.addEventListener('click',unlockAudio,{once:true});
+document.addEventListener('touchstart',unlockAudio,{once:true});
 function speakCmd(cmd){ // 'in'|'out'|'hold'|'begin'|'complete'
   if(!voiceOn)return;
   const a=voiceAudios[cmd];if(!a)return;
-  a.currentTime=0;a.play().catch(()=>{});
+  try{a.currentTime=0;a.play().catch(()=>{})}catch(e){}
 }
-function stopSpeak(){Object.values(voiceAudios).forEach(a=>{a.pause();a.currentTime=0})}
+function stopSpeak(){Object.values(voiceAudios).forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}})}
 
 // ---- UI ----
 function show(id){home.style.display='none';med.style.display='none';id.style.display=id===med?'flex':'block'}
