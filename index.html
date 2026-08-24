@@ -58,8 +58,9 @@
   .voice-row .toggle.on{background:var(--gold)}
   .voice-row .toggle i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
   .voice-row .toggle.on i{left:22px}
-  .big-start{background:linear-gradient(135deg,var(--gold),var(--amber));color:#231536;border:none;border-radius:18px;
-             padding:17px;font-weight:800;font-size:16px;width:100%;cursor:pointer;margin-top:8px;flex-shrink:0}
+  .big-start{position:absolute;bottom:14px;left:22px;right:22px;width:auto;background:linear-gradient(135deg,var(--gold),var(--amber));
+             color:#231536;border:none;border-radius:18px;padding:17px;font-weight:800;font-size:16px;cursor:pointer;z-index:40;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+  .screen.med-mode .big-start{display:none}
   .nav{display:flex;justify-content:space-around;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}
   .nav span{display:flex;flex-direction:column;align-items:center;gap:4px}
   .nav .on{color:var(--gold)}
@@ -135,11 +136,11 @@
               <div class="toggle on" id="natureToggle" onclick="toggleNature()"><i></i></div>
             </div>
           </div>
-          <button class="big-start" onclick="startSession()">Begin breathwork →</button>
           <div class="nav">
             <span class="on"><span class="ic">☾</span>Home</span><span><span class="ic">❋</span>Sessions</span><span><span class="ic">☰</span>Stats</span><span><span class="ic">◉</span>You</span>
           </div>
         </div>
+        <button class="big-start" id="bigStart" onclick="startSession()">Begin breathwork →</button>
 
         <!-- MEDITATION -->
         <div class="med" id="med">
@@ -226,7 +227,7 @@ function toggleVoice(){voiceOn=!voiceOn;document.getElementById('voiceToggle').c
 // ---- Session ----
 let session=null,breathTimer=null,paused=false,phaseIdx=0,phaseLeft=0;
 function startSession(){
-  show(med);activeGlow=0.9;
+  show(med);activeGlow=0.9;screen.classList.add('med-mode');
   initAudio();if(actx&&actx.state==='suspended')actx.resume();if(natureOn)buildNature(natureType);
   const total=dur*60;document.getElementById('timer').textContent=fmt(total);
   document.getElementById('quote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
@@ -260,7 +261,7 @@ function finishSession(){clearInterval(session);clearInterval(breathTimer);
 function togglePause(){paused=!paused;const b=document.querySelector('#med .btn-round.ghost');
   b.textContent=paused?'▶':'⏸';if(paused)stopSpeak();else {const ph=TECHS[tech].phases[phaseIdx];speak(ph.label)}}
 function endMed(){clearInterval(session);clearInterval(breathTimer);stopSpeak();paused=false;
-  buildNature('off');breathPhase=1;
+  buildNature('off');breathPhase=1;screen.classList.remove('med-mode');
   document.getElementById('ring').style.transform='scale(1)';show(home);activeGlow=0.35}
 function fmt(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
 
