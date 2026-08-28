@@ -58,9 +58,14 @@
   .voice-row .toggle.on{background:var(--gold)}
   .voice-row .toggle i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
   .voice-row .toggle.on i{left:22px}
-  .big-start{position:absolute;bottom:14px;left:22px;right:22px;width:auto;background:linear-gradient(135deg,var(--gold),var(--amber));
+  .big-start{position:absolute;bottom:56px;left:22px;right:22px;width:auto;background:linear-gradient(135deg,var(--gold),var(--amber));
              color:#231536;border:none;border-radius:18px;padding:17px;font-weight:800;font-size:16px;cursor:pointer;z-index:40;box-shadow:0 6px 20px rgba(0,0,0,.3)}
-  .screen.med-mode .big-start{display:none}
+  .sos-btn{position:absolute;bottom:14px;left:22px;right:22px;width:auto;background:rgba(255,56,92,.15);color:#FF6B8A;border:1px solid rgba(255,56,92,.4);
+             border-radius:14px;padding:10px;font-weight:700;font-size:13px;cursor:pointer;z-index:40;transition:.2s}
+  .sos-btn:hover{background:rgba(255,56,92,.3);color:#FF8FA3}
+  .sos-btn.pulse{animation:sospulse 1.5s infinite}
+  @keyframes sospulse{0%,100%{box-shadow:0 0 0 0 rgba(255,56,92,.5)}50%{box-shadow:0 0 0 8px rgba(255,56,92,0)}}
+  .screen.med-mode .big-start,.screen.med-mode .sos-btn{display:none}
   .nav{display:flex;justify-content:space-around;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}
   .nav span{display:flex;flex-direction:column;align-items:center;gap:4px}
   .nav .on{color:var(--gold)}
@@ -141,6 +146,7 @@
           </div>
         </div>
         <button class="big-start" id="bigStart" onclick="startSession()">Begin breathwork →</button>
+        <button class="sos-btn" id="sosBtn" onclick="startSOS()">🚨 Need calm now</button>
 
         <!-- MEDITATION -->
         <div class="med" id="med">
@@ -229,6 +235,16 @@ function pickTech(tt,silent){tech=tt;document.querySelectorAll('.tech button').f
 function pickDur(d){dur=d;document.querySelectorAll('.duration button').forEach(b=>b.classList.toggle('on',+b.dataset.d===d))}
 function toggleVoice(){voiceOn=!voiceOn;document.getElementById('voiceToggle').classList.toggle('on',voiceOn);
   if(voiceOn){speakCmd("begin")}else stopSpeak()}
+
+// ---- SOS: instant calm ----
+function startSOS(){
+  // force calming 4-7-8, short, gentle
+  tech='478';dur=2;natureType='ocean';natureOn=true;
+  document.getElementById('techName').textContent='SOS · Calming breath';
+  document.getElementById('quote').textContent='"You are safe. Just breathe with me."';
+  startSession();
+  document.getElementById('breath').textContent='You are safe…';
+}
 
 // ---- Session ----
 let session=null,breathTimer=null,paused=false,phaseIdx=0,phaseLeft=0;
