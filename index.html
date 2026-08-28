@@ -224,26 +224,39 @@ const TECHS={
 };
 const QUOTES=["With every breath, you return to yourself.","You are safe. You are here.","Let the breath carry the tension away.","Stillness is your home.","This moment is enough."];
 
-// ---- Premium Voice (real audio files) ----
+// ---- Premium Voice (female/male audio files) ----
 const AUDIO_BASE='audio/';
 let voiceAudios={};
 function preloadVoice(){
-  const files={in:'breathe_in.mp3',out:'breathe_out.mp3',hold:'hold.mp3',begin:'begin.mp3',complete:'complete.mp3'};
-  Object.entries(files).forEach(([k,f])=>{const a=new Audio(AUDIO_BASE+f);a.preload='auto';a.volume=1;voiceAudios[k]=a});
+  const files={in:['breathe_in.mp3','f_breathe_in.mp3','m_breathe_in.mp3'],
+               out:['breathe_out.mp3','f_breathe_out.mp3','m_breathe_out.mp3'],
+               hold:['hold.mp3','f_hold.mp3','m_hold.mp3'],
+               begin:['begin.mp3','f_begin.mp3','m_begin.mp3'],
+               complete:['complete.mp3','f_complete.mp3','m_complete.mp3']};
+  Object.entries(files).forEach(([k,[base,f,m]])=>{
+    const a=new Audio(AUDIO_BASE+base);a.preload='auto';a.volume=1;
+    const af=new Audio(AUDIO_BASE+f);af.preload='auto';af.volume=1;
+    const am=new Audio(AUDIO_BASE+m);am.preload='auto';am.volume=1;
+    voiceAudios[k]={any:a,female:af,male:am};
+  });
 }
 preloadVoice();
 // Unlock audio on first user gesture (required by browsers for later plays)
 function unlockAudio(){
-  ['in','out','hold','begin','complete'].forEach(k=>{const a=voiceAudios[k];if(a&&a.paused){a.play().then(()=>{a.pause();a.currentTime=0}).catch(()=>{})}});
+  ['in','out','hold','begin','complete'].forEach(k=>{
+    const set=voiceAudios[k];Object.values(set).forEach(a=>{if(a&&a.paused){a.play().then(()=>{a.pause();a.currentTime=0}).catch(()=>{})}});
+  });
 }
 document.addEventListener('click',unlockAudio,{once:true});
 document.addEventListener('touchstart',unlockAudio,{once:true});
 function speakCmd(cmd){ // 'in'|'out'|'hold'|'begin'|'complete'
   if(!voiceOn)return;
-  const a=voiceAudios[cmd];if(!a)return;
+  const set=voiceAudios[cmd];if(!set)return;
+  // female when toggle ON, male when toggle OFF
+  const a = voiceOn ? (set.female||set.any) : (set.male||set.any);
   try{a.currentTime=0;a.play().catch(()=>{})}catch(e){}
 }
-function stopSpeak(){Object.values(voiceAudios).forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}})}
+function stopSpeak(){Object.values(voiceAudios).forEach(set=>{Object.values(set).forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}})})}
 
 // ---- UI ----
 function show(id){home.style.display='none';med.style.display='none';id.style.display=id===med?'flex':'block'}
