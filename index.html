@@ -341,7 +341,10 @@ function finishSession(){clearInterval(session);clearInterval(breathTimer);
   document.getElementById('breath').textContent='Complete ✨';speakCmd('complete');paused=true;
   setTimeout(()=>{paused=false;endMed()},2500)}
 function togglePause(){paused=!paused;const b=document.querySelector('#med .btn-round.ghost');
-  b.textContent=paused?'▶':'⏸';if(paused)stopSpeak();else {const ph=TECHS[tech].phases[phaseIdx];speakCmd(ph.label.toLowerCase().includes('in')?'in':ph.label.toLowerCase().includes('hold')?'hold':'out')}}
+  b.textContent=paused?'▶':'⏸';
+  if(paused){stopSpeak();pauseMusic()}else{resumeMusic();const ph=TECHS[tech].phases[phaseIdx];speakCmd(ph.label.toLowerCase().includes('in')?'in':ph.label.toLowerCase().includes('hold')?'hold':'out')}}
+function pauseMusic(){if(actx&&musicGain){try{musicGain.gain.cancelScheduledValues(actx.currentTime);musicGain.gain.setTargetAtTime(0,actx.currentTime,0.05)}catch(e){}}}
+function resumeMusic(){if(actx&&musicGain){try{musicGain.gain.cancelScheduledValues(actx.currentTime);musicGain.gain.setTargetAtTime(0.6,actx.currentTime,0.1)}catch(e){}}}
 function endMed(){clearInterval(session);clearInterval(breathTimer);stopSpeak();paused=false;
   buildNature('off');breathPhase=1;screen.classList.remove('med-mode');
   document.getElementById('ring').style.transform='scale(1)';show(home);activeGlow=0.35}
