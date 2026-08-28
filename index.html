@@ -241,10 +241,19 @@ function preloadVoice(){
   });
 }
 preloadVoice();
-// Unlock audio on first user gesture (required by browsers for later plays)
+// Unlock audio on first user gesture without actually playing sound
 function unlockAudio(){
+  // Use a silent approach: load() all, and play one muted instantly to unlock the audio element
   ['in','out','hold','begin','complete'].forEach(k=>{
-    const set=voiceAudios[k];Object.values(set).forEach(a=>{if(a&&a.paused){a.play().then(()=>{a.pause();a.currentTime=0}).catch(()=>{})}});
+    const set=voiceAudios[k];
+    Object.values(set).forEach(a=>{
+      try{
+        a.muted=true; // play muted so user hears nothing
+        a.volume=0;
+        const p=a.play();
+        if(p){p.then(()=>{setTimeout(()=>{a.pause();a.currentTime=0;a.muted=false;a.volume=1},10)}).catch(()=>{})}
+      }catch(e){}
+    });
   });
 }
 document.addEventListener('click',unlockAudio,{once:true});
