@@ -36,6 +36,16 @@
   .home .hello{font-size:25px;font-weight:700}
   .home .hello span{display:block;font-size:13px;color:var(--muted);font-weight:400;margin-top:4px}
   .goal-title{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+  .mood-title{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+  .moods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .mood{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;transition:.15s}
+  .mood:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .mood.on{border-color:var(--gold);background:linear-gradient(135deg,rgba(240,180,41,.2),rgba(168,139,184,.12))}
+  .mood .emoji{font-size:22px;margin-bottom:4px}
+  .mood .lbl{font-size:10.5px;font-weight:600}
+  .ai-pick{background:rgba(240,180,41,.12);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:9px 12px;
+           font-size:12px;color:var(--amber);text-align:center}
+  .ai-pick b{color:var(--text)}
   .goals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .goal{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px;cursor:pointer;transition:.15s}
   .goal:hover{border-color:var(--gold);transform:translateY(-2px)}
@@ -110,7 +120,17 @@
         <!-- HOME -->
         <div class="home" id="home">
           <div class="top"><span>9:41</span><span>🔋</span></div>
-          <div class="hello">What do you need?<span>Lumecai will guide your breath</span></div>
+          <div class="hello">How are you feeling?<span>Lumecai will guide your breath</span></div>
+          <div class="mood-title">Tap how you feel</div>
+          <div class="moods">
+            <div class="mood on" data-m="stressed" onclick="pickMood('stressed')"><div class="emoji">😫</div><div class="lbl">Stressed</div></div>
+            <div class="mood" data-m="anxious" onclick="pickMood('anxious')"><div class="emoji">😟</div><div class="lbl">Anxious</div></div>
+            <div class="mood" data-m="sleepy" onclick="pickMood('sleepy')"><div class="emoji">😴</div><div class="lbl">Sleepy</div></div>
+            <div class="mood" data-m="scattered" onclick="pickMood('scattered')"><div class="emoji">🌪️</div><div class="lbl">Scattered</div></div>
+            <div class="mood" data-m="energize" onclick="pickMood('energize')"><div class="emoji">⚡</div><div class="lbl">Need energy</div></div>
+            <div class="mood" data-m="ok" onclick="pickMood('ok')"><div class="emoji">😌</div><div class="lbl">Just relaxing</div></div>
+          </div>
+          <div class="ai-pick" id="aiPick">AI picked: <b>Box breathing · 5 min</b></div>
           <div class="goal-title">I want to…</div>
           <div class="goals">
             <div class="goal on" id="g-relax" data-id="relax" onclick="pickGoal('relax')"><div class="ico">🌿</div><div class="nm">Relax</div><div class="ct">Unwind & calm</div></div>
@@ -230,6 +250,28 @@ function show(id){home.style.display='none';med.style.display='none';id.style.di
 function pickGoal(g){goal=g;document.querySelectorAll('.goal').forEach(x=>x.classList.remove('on'));document.getElementById('g-'+g).classList.add('on');
   // AI suggests technique for the goal
   pickTech(GOALS[g].tech,true)}
+
+// ---- AI Mood picker ----
+const MOODS={
+  stressed:{tech:'box',dur:5,goal:'relax',sound:'ocean',label:'Box breathing · 5 min',msg:'You are safe. Let go.'},
+  anxious:{tech:'478',dur:3,goal:'relax',sound:'rain',label:'4-7-8 calm · 3 min',msg:'Breathe out slowly. You are safe.'},
+  sleepy:{tech:'478',dur:10,goal:'sleep',sound:'rain',label:'Sleep 4-7-8 · 10 min',msg:'Let the day melt away.'},
+  scattered:{tech:'equal',dur:5,goal:'focus',sound:'wind',label:'Equal focus · 5 min',msg:'Come back to center.'},
+  energize:{tech:'wim',dur:2,goal:'energy',sound:'wind',label:'Wim Hof · 2 min',msg:'Wake up your body.'},
+  ok:{tech:'equal',dur:5,goal:'relax',sound:'forest',label:'Peaceful equal · 5 min',msg:'Just breathe with me.'},
+};
+function pickMood(m){
+  document.querySelectorAll('.mood').forEach(x=>x.classList.remove('on'));
+  document.querySelector('.mood[data-m="'+m+'"]').classList.add('on');
+  const c=MOODS[m];
+  tech=c.tech;dur=c.dur;goal=c.goal;natureType=c.sound;natureOn=true;
+  // update UI
+  pickTech(c.tech,true);pickDur(c.dur);
+  document.querySelectorAll('.goal').forEach(x=>x.classList.remove('on'));
+  document.getElementById('g-'+c.goal).classList.add('on');
+  document.getElementById('aiPick').innerHTML='AI picked: <b>'+c.label+'</b>';
+  document.getElementById('quote').textContent='"'+c.msg+'"';
+}
 function pickTech(tt,silent){tech=tt;document.querySelectorAll('.tech button').forEach(b=>b.classList.toggle('on',b.dataset.t===tt));
   document.getElementById('techName').textContent=TECHS[tt].name}
 function pickDur(d){dur=d;document.querySelectorAll('.duration button').forEach(b=>b.classList.toggle('on',+b.dataset.d===d))}
