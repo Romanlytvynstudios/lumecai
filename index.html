@@ -235,23 +235,20 @@ function preloadVoice(){
                begin:['voice_begin_f.mp3','voice_begin_m.mp3'],
                complete:['voice_complete_f.mp3','voice_complete_m.mp3']};
   Object.entries(files).forEach(([k,[f,m]])=>{
-    const af=new Audio(AUDIO_BASE+f+AVER);af.preload='auto';af.volume=1;
-    const am=new Audio(AUDIO_BASE+m+AVER);am.preload='auto';am.volume=1;
+    const af=new Audio(AUDIO_BASE+f+AVER);af.preload='none';af.volume=1;
+    const am=new Audio(AUDIO_BASE+m+AVER);am.preload='none';am.volume=1;
     voiceAudios[k]={female:af,male:am};
   });
 }
 preloadVoice();
 // Unlock audio on first user gesture silently (no sound burst)
 function unlockAudio(){
-  ['in','out','hold','begin','complete'].forEach(k=>{
-    const set=voiceAudios[k];
-    Object.values(set).forEach(a=>{
-      try{a.muted=true;a.volume=0;
-        const p=a.play();
-        if(p){p.then(()=>setTimeout(()=>{a.pause();a.currentTime=0;a.muted=false;a.volume=1},10)).catch(()=>{})}
-      }catch(e){}
-    });
-  });
+  // only unlock one female + one male file (lightweight)
+  const sample=[voiceAudios['begin'].female, voiceAudios['begin'].male];
+  sample.forEach(a=>{try{a.muted=true;a.volume=0;
+    const p=a.play();
+    if(p){p.then(()=>setTimeout(()=>{a.pause();a.currentTime=0;a.muted=false;a.volume=1},10)).catch(()=>{})}
+  }catch(e){}});
 }
 document.addEventListener('click',unlockAudio,{once:true});
 document.addEventListener('touchstart',unlockAudio,{once:true});
@@ -311,7 +308,7 @@ function startSOS(){
 let session=null,breathTimer=null,paused=false,phaseIdx=0,phaseLeft=0;
 function startSession(){
   show(med);activeGlow=0.9;screen.classList.add('med-mode');
-  initAudio();resumeAudio();if(natureOn)buildNature(natureType);
+  if(natureOn)buildNature(natureType);
   const total=dur*60;document.getElementById('timer').textContent=fmt(total);
   document.getElementById('quote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
   const phases=TECHS[tech].phases;phaseIdx=0;phaseLeft=phases[0].t;
@@ -356,26 +353,23 @@ function endMed(){clearInterval(session);clearInterval(breathTimer);stopSpeak();
   document.getElementById('ring').style.transform='scale(1)';show(home);activeGlow=0.35}
 function fmt(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
 
-// ---- Nature sounds (real mp3 files) ----
+// ---- Nature sounds (real mp3 files, lazy-loaded) ----
 let actx=null,musicGain=null;
 let natureAudio=null,natureEls={};
 const NATURE_FILES={rain:'amb_rain_2.mp3',ocean:'amb_ocean_2.mp3',forest:'amb_forest_2.mp3',fireplace:'amb_fire_1.mp3',wind:'amb_rain_2.mp3'};
-function preloadNature(){
-  ['rain','ocean','wind','forest','fireplace'].forEach(t=>{
-    const a=new Audio('audio/'+NATURE_FILES[t]+'?v=1');a.loop=true;a.volume=0;
-    natureEls[t]=a;
-  });
+function getNatureEl(t){
+  if(!natureEls[t]){const a=new Audio('audio/'+NATURE_FILES[t]+'?v=2');a.loop=true;a.volume=0;natureEls[t]=a;}
+  return natureEls[t];
 }
-preloadNature();
-function initAudio(){/* unused - using HTML audio for nature */}
-function resumeAudio(){Object.values(natureEls).forEach(a=>{try{a.play().then(()=>a.pause()).catch(()=>{})}catch(e){}})}
 function buildNature(type){
-  // stop current
   if(natureAudio){try{natureAudio.pause();natureAudio.currentTime=0}catch(e){}}
   if(!type||type==='off'){natureAudio=null;return}
-  const el=natureEls[type];if(!el)return;
-  el.loop=true;el.volume=0.5;el.currentTime=0;
+  const el=getNatureEl(type);
+  el.volume=0; // start silent
+  el.currentTime=0;
   el.play().catch(()=>{});
+  // fade in to 0.5
+  try{el.volume=0.5;}catch(e){}
   natureAudio=el;
 }
 function pauseMusic(){if(natureAudio){natureAudio.pause()}}
