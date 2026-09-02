@@ -234,11 +234,16 @@ function getVoice(cmd,isFemale){
   if(!voiceAudios[key]){const [f,m]=VOICE_FILES[cmd];const file=isFemale?f:m;voiceAudios[key]=new Audio(AUDIO_BASE+file+AVER);}
   return voiceAudios[key];
 }
-// Unlock audio context on first gesture (lightweight - just plays one silent female clip)
+// Unlock audio on first gesture - preload ALL clips so later autoplay works
 function unlockAudio(){
-  const a=getVoice('begin',true);try{a.muted=true;a.volume=0;const p=a.play();
-    if(p){p.then(()=>setTimeout(()=>{a.pause();a.currentTime=0;a.muted=false;a.volume=1},10)).catch(()=>{})}
-  }catch(e){}
+  const isF = typeof voiceOn!=='undefined' ? voiceOn : true;
+  ['in','out','hold','begin','complete'].forEach(cmd=>{
+    const a=getVoice(cmd,isF);
+    try{a.muted=true;a.volume=0;
+      const p=a.play();
+      if(p){p.then(()=>setTimeout(()=>{a.pause();a.currentTime=0;a.muted=false;a.volume=1},10)).catch(()=>{})}
+    }catch(e){}
+  });
 }
 document.addEventListener('click',unlockAudio,{once:true});
 document.addEventListener('touchstart',unlockAudio,{once:true});
