@@ -343,7 +343,7 @@ function endMed(){clearInterval(session);clearInterval(breathTimer);stopSpeak();
 function fmt(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
 
 // ---- Nature sounds (real mp3 files, lazy-loaded) ----
-let actx=null,musicGain=null;
+let actx=null,musicGain=null,natureOn=true,natureType='rain';
 let natureAudio=null,natureEls={};
 const NATURE_FILES={rain:'amb_rain_2.mp3',ocean:'amb_ocean_2.mp3',forest:'amb_forest_2.mp3',fireplace:'amb_fire_1.mp3',wind:'amb_rain_2.mp3'};
 function getNatureEl(t){
