@@ -359,7 +359,7 @@ function fmt(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0
 // ---- Nature sounds (real mp3 files) ----
 let actx=null,musicGain=null;
 let natureAudio=null,natureEls={};
-const NATURE_FILES={rain:'nature_rain.mp3',ocean:'nature_ocean.mp3',forest:'nature_forest.mp3',wind:'nature_rain.mp3'};
+const NATURE_FILES={rain:'amb_rain_1.mp3',ocean:'amb_ocean_7.mp3',forest:'amb_forest_4.mp3',wind:'amb_rain_1.mp3'};
 function preloadNature(){
   ['rain','ocean','wind','forest'].forEach(t=>{
     const a=new Audio('audio/'+NATURE_FILES[t]+'?v=1');a.loop=true;a.volume=0;
