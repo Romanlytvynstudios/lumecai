@@ -156,7 +156,7 @@
           <div class="voice-row" style="margin-top:10px"><span>🌧️ Nature sound</span>
             <div style="display:flex;gap:6px;align-items:center">
               <select id="natureSel" style="background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:6px;font-size:12px">
-                <option value="off">Off</option><option value="rain" selected>Rain</option><option value="ocean">Ocean</option><option value="wind">Wind</option><option value="forest">Forest</option><option value="fireplace">Fireplace</option>
+                <option value="off">Off</option><option value="rain" selected>Rain</option><option value="ocean">Ocean</option><option value="forest">Forest</option><option value="fireplace">Fireplace</option>
               </select>
               <div class="toggle on" id="natureToggle" onclick="toggleNature()"><i></i></div>
             </div>
@@ -265,8 +265,8 @@ const MOODS={
   stressed:{tech:'box',dur:5,goal:'relax',sound:'ocean',label:'Box breathing · 5 min',msg:'You are safe. Let go.'},
   anxious:{tech:'478',dur:3,goal:'relax',sound:'rain',label:'4-7-8 calm · 3 min',msg:'Breathe out slowly. You are safe.'},
   sleepy:{tech:'478',dur:10,goal:'sleep',sound:'rain',label:'Sleep 4-7-8 · 10 min',msg:'Let the day melt away.'},
-  scattered:{tech:'equal',dur:5,goal:'focus',sound:'wind',label:'Equal focus · 5 min',msg:'Come back to center.'},
-  energize:{tech:'wim',dur:2,goal:'energy',sound:'wind',label:'Wim Hof · 2 min',msg:'Wake up your body.'},
+  scattered:{tech:'equal',dur:5,goal:'focus',sound:'rain',label:'Equal focus · 5 min',msg:'Come back to center.'},
+  energize:{tech:'wim',dur:2,goal:'energy',sound:'ocean',label:'Wim Hof · 2 min',msg:'Wake up your body.'},
   ok:{tech:'equal',dur:5,goal:'relax',sound:'forest',label:'Peaceful equal · 5 min',msg:'Just breathe with me.'},
 };
 function pickMood(m){
