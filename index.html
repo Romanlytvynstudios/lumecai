@@ -156,7 +156,7 @@
           <div class="voice-row" style="margin-top:10px"><span>🌧️ Nature sound</span>
             <div style="display:flex;gap:6px;align-items:center">
               <select id="natureSel" style="background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:6px;font-size:12px">
-                <option value="off">Off</option><option value="rain" selected>Rain</option><option value="ocean">Ocean</option><option value="wind">Wind</option><option value="forest">Forest</option>
+                <option value="off">Off</option><option value="rain" selected>Rain</option><option value="ocean">Ocean</option><option value="wind">Wind</option><option value="forest">Forest</option><option value="fireplace">Fireplace</option>
               </select>
               <div class="toggle on" id="natureToggle" onclick="toggleNature()"><i></i></div>
             </div>
@@ -359,9 +359,9 @@ function fmt(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0
 // ---- Nature sounds (real mp3 files) ----
 let actx=null,musicGain=null;
 let natureAudio=null,natureEls={};
-const NATURE_FILES={rain:'amb_rain_1.mp3',ocean:'amb_ocean_7.mp3',forest:'amb_forest_4.mp3',wind:'amb_rain_1.mp3'};
+const NATURE_FILES={rain:'amb_rain_2.mp3',ocean:'amb_ocean_2.mp3',forest:'amb_forest_2.mp3',fireplace:'amb_fire_1.mp3',wind:'amb_rain_2.mp3'};
 function preloadNature(){
-  ['rain','ocean','wind','forest'].forEach(t=>{
+  ['rain','ocean','wind','forest','fireplace'].forEach(t=>{
     const a=new Audio('audio/'+NATURE_FILES[t]+'?v=1');a.loop=true;a.volume=0;
     natureEls[t]=a;
   });
