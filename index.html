@@ -224,41 +224,30 @@ const TECHS={
 };
 const QUOTES=["With every breath, you return to yourself.","You are safe. You are here.","Let the breath carry the tension away.","Stillness is your home.","This moment is enough."];
 
-// ---- Premium Voice (female/male audio) ----
+// ---- Premium Voice (female/male audio, lazy-created) ----
 const AUDIO_BASE='audio/';
-const AVER='?v=3'; // cache-buster
+const AVER='?v=3';
+const VOICE_FILES={in:['voice_in_f.mp3','voice_in_m.mp3'],out:['voice_out_f.mp3','voice_out_m.mp3'],hold:['voice_hold_f.mp3','voice_hold_m.mp3'],begin:['voice_begin_f.mp3','voice_begin_m.mp3'],complete:['voice_complete_f.mp3','voice_complete_m.mp3']};
 let voiceAudios={};
-function preloadVoice(){
-  const files={in:['voice_in_f.mp3','voice_in_m.mp3'],
-               out:['voice_out_f.mp3','voice_out_m.mp3'],
-               hold:['voice_hold_f.mp3','voice_hold_m.mp3'],
-               begin:['voice_begin_f.mp3','voice_begin_m.mp3'],
-               complete:['voice_complete_f.mp3','voice_complete_m.mp3']};
-  Object.entries(files).forEach(([k,[f,m]])=>{
-    const af=new Audio(AUDIO_BASE+f+AVER);af.preload='none';af.volume=1;
-    const am=new Audio(AUDIO_BASE+m+AVER);am.preload='none';am.volume=1;
-    voiceAudios[k]={female:af,male:am};
-  });
+function getVoice(cmd,isFemale){
+  const key=cmd+(isFemale?'_f':'_m');
+  if(!voiceAudios[key]){const [f,m]=VOICE_FILES[cmd];const file=isFemale?f:m;voiceAudios[key]=new Audio(AUDIO_BASE+file+AVER);}
+  return voiceAudios[key];
 }
-preloadVoice();
-// Unlock audio on first user gesture silently (no sound burst)
+// Unlock audio context on first gesture (lightweight - just plays one silent female clip)
 function unlockAudio(){
-  // only unlock one female + one male file (lightweight)
-  const sample=[voiceAudios['begin'].female, voiceAudios['begin'].male];
-  sample.forEach(a=>{try{a.muted=true;a.volume=0;
-    const p=a.play();
+  const a=getVoice('begin',true);try{a.muted=true;a.volume=0;const p=a.play();
     if(p){p.then(()=>setTimeout(()=>{a.pause();a.currentTime=0;a.muted=false;a.volume=1},10)).catch(()=>{})}
-  }catch(e){}});
+  }catch(e){}
 }
 document.addEventListener('click',unlockAudio,{once:true});
 document.addEventListener('touchstart',unlockAudio,{once:true});
 function speakCmd(cmd){ // 'in'|'out'|'hold'|'begin'|'complete'
   if(!voiceOn)return;
-  const set=voiceAudios[cmd];if(!set)return;
-  const a = voiceOn ? set.female : set.male; // female when ON, male when OFF
+  const a=getVoice(cmd,voiceOn); // female when ON, male when OFF
   try{a.currentTime=0;a.play().catch(()=>{})}catch(e){}
 }
-function stopSpeak(){Object.values(voiceAudios).forEach(set=>{Object.values(set).forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}})})}
+function stopSpeak(){Object.values(voiceAudios).forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}})}
 
 // ---- UI ----
 function show(id){home.style.display='none';med.style.display='none';id.style.display=id===med?'flex':'block'}
