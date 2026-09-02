@@ -224,34 +224,31 @@ const TECHS={
 };
 const QUOTES=["With every breath, you return to yourself.","You are safe. You are here.","Let the breath carry the tension away.","Stillness is your home.","This moment is enough."];
 
-// ---- Premium Voice (female/male audio files) ----
+// ---- Premium Voice (female/male audio) ----
 const AUDIO_BASE='audio/';
+const AVER='?v=3'; // cache-buster
 let voiceAudios={};
 function preloadVoice(){
-  const files={in:['breathe_in.mp3','f_breathe_in.mp3','m_breathe_in.mp3'],
-               out:['breathe_out.mp3','f_breathe_out.mp3','m_breathe_out.mp3'],
-               hold:['hold.mp3','f_hold.mp3','m_hold.mp3'],
-               begin:['begin.mp3','f_begin.mp3','m_begin.mp3'],
-               complete:['complete.mp3','f_complete.mp3','m_complete.mp3']};
-  Object.entries(files).forEach(([k,[base,f,m]])=>{
-    const a=new Audio(AUDIO_BASE+base);a.preload='auto';a.volume=1;
-    const af=new Audio(AUDIO_BASE+f);af.preload='auto';af.volume=1;
-    const am=new Audio(AUDIO_BASE+m);am.preload='auto';am.volume=1;
-    voiceAudios[k]={any:a,female:af,male:am};
+  const files={in:['voice_in_f.mp3','voice_in_m.mp3'],
+               out:['voice_out_f.mp3','voice_out_m.mp3'],
+               hold:['voice_hold_f.mp3','voice_hold_m.mp3'],
+               begin:['voice_begin_f.mp3','voice_begin_m.mp3'],
+               complete:['voice_complete_f.mp3','voice_complete_m.mp3']};
+  Object.entries(files).forEach(([k,[f,m]])=>{
+    const af=new Audio(AUDIO_BASE+f+AVER);af.preload='auto';af.volume=1;
+    const am=new Audio(AUDIO_BASE+m+AVER);am.preload='auto';am.volume=1;
+    voiceAudios[k]={female:af,male:am};
   });
 }
 preloadVoice();
-// Unlock audio on first user gesture without actually playing sound
+// Unlock audio on first user gesture silently (no sound burst)
 function unlockAudio(){
-  // Use a silent approach: load() all, and play one muted instantly to unlock the audio element
   ['in','out','hold','begin','complete'].forEach(k=>{
     const set=voiceAudios[k];
     Object.values(set).forEach(a=>{
-      try{
-        a.muted=true; // play muted so user hears nothing
-        a.volume=0;
+      try{a.muted=true;a.volume=0;
         const p=a.play();
-        if(p){p.then(()=>{setTimeout(()=>{a.pause();a.currentTime=0;a.muted=false;a.volume=1},10)}).catch(()=>{})}
+        if(p){p.then(()=>setTimeout(()=>{a.pause();a.currentTime=0;a.muted=false;a.volume=1},10)).catch(()=>{})}
       }catch(e){}
     });
   });
@@ -261,8 +258,7 @@ document.addEventListener('touchstart',unlockAudio,{once:true});
 function speakCmd(cmd){ // 'in'|'out'|'hold'|'begin'|'complete'
   if(!voiceOn)return;
   const set=voiceAudios[cmd];if(!set)return;
-  // female when toggle ON, male when toggle OFF
-  const a = voiceOn ? (set.female||set.any) : (set.male||set.any);
+  const a = voiceOn ? set.female : set.male; // female when ON, male when OFF
   try{a.currentTime=0;a.play().catch(()=>{})}catch(e){}
 }
 function stopSpeak(){Object.values(voiceAudios).forEach(set=>{Object.values(set).forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}})})}
