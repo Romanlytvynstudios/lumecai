@@ -356,60 +356,31 @@ function endMed(){clearInterval(session);clearInterval(breathTimer);stopSpeak();
   document.getElementById('ring').style.transform='scale(1)';show(home);activeGlow=0.35}
 function fmt(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
 
-// ---- Nature sounds (Web Audio API - no files) ----
-let actx=null,nodes=[],natureOn=true,natureType='rain',musicGain=null,audioStart=false;
-function initAudio(){
-  if(actx)return;
-  try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return}
-  musicGain=actx.createGain();musicGain.gain.value=1.0;musicGain.connect(actx.destination);
+// ---- Nature sounds (real mp3 files) ----
+let actx=null,musicGain=null;
+let natureAudio=null,natureEls={};
+const NATURE_FILES={rain:'nature_rain.mp3',ocean:'nature_ocean.mp3',forest:'nature_forest.mp3',wind:'nature_rain.mp3'};
+function preloadNature(){
+  ['rain','ocean','wind','forest'].forEach(t=>{
+    const a=new Audio('audio/'+NATURE_FILES[t]+'?v=1');a.loop=true;a.volume=0;
+    natureEls[t]=a;
+  });
 }
-function resumeAudio(){if(actx&&actx.state==='suspended'){actx.resume()}}
+preloadNature();
+function initAudio(){/* unused - using HTML audio for nature */}
+function resumeAudio(){Object.values(natureEls).forEach(a=>{try{a.play().then(()=>a.pause()).catch(()=>{})}catch(e){}})}
 function buildNature(type){
-  nodes.forEach(n=>{try{n.disconnect()}catch(e){}});nodes=[];
-  if(!actx||type==='off')return;
-  // ambient filtered noise (audible but gentle texture)
-  const noiseLen=actx.sampleRate*2,buf=actx.createBuffer(1,noiseLen,actx.sampleRate),data=buf.getChannelData(0);
-  for(let i=0;i<noiseLen;i++)data[i]=Math.random()*2-1;
-  const src=actx.createBufferSource();src.buffer=buf;src.loop=true;
-  const filter=actx.createBiquadFilter();filter.type='lowpass';
-  const ng=actx.createGain();ng.gain.value=0.28;
-  if(type==='rain'){filter.frequency.value=700;}
-  else if(type==='ocean'){filter.frequency.value=400;}
-  else if(type==='wind'){filter.frequency.value=500;}
-  else if(type==='forest'){filter.frequency.value=800;}
-  src.connect(filter);filter.connect(ng);ng.connect(musicGain);nodes.push(src,filter,ng);
-  src.start();
-
-  // Warm harmonic pad — main calming "music"
-  try{
-    const base=[130.81,164.81,196.0]; // C3, E3, G3 chord
-    base.forEach((f,i)=>{
-      const o=actx.createOscillator();o.type='sine';o.frequency.value=f;
-      const og=actx.createGain();og.gain.value=0.16;
-      const lfo=actx.createOscillator();lfo.frequency.value=0.08+ i*0.02;
-      const lg=actx.createGain();lg.gain.value=0.06;
-      lfo.connect(lg);lg.connect(og.gain);
-      o.connect(og);og.connect(musicGain);o.start();lfo.start();
-      nodes.push(o,og,lfo,lg);
-    });
-    const o2=actx.createOscillator();o2.type='sine';o2.frequency.value=392.0; // G4
-    const og2=actx.createGain();og2.gain.value=0.05;
-    o2.connect(og2);og2.connect(musicGain);o2.start();nodes.push(o2,og2);
-  }catch(e){}
-
-  // birds for forest
-  if(type==='forest'){
-    const chirp=setInterval(()=>{if(!natureOn)return;chirpBird()},2500);
-    nodes.push({disconnect:()=>clearInterval(chirp)});
-  }
+  // stop current
+  if(natureAudio){try{natureAudio.pause();natureAudio.currentTime=0}catch(e){}}
+  if(!type||type==='off'){natureAudio=null;return}
+  const el=natureEls[type];if(!el)return;
+  el.loop=true;el.volume=0.5;el.currentTime=0;
+  el.play().catch(()=>{});
+  natureAudio=el;
 }
-function chirpBird(){if(!actx||!natureOn)return;const o=actx.createOscillator(),g=actx.createGain();
-  o.type='sine';o.frequency.value=2000+Math.random()*700;g.gain.setValueAtTime(0.0001,actx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.03,actx.currentTime+0.02);
-  g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+0.1);
-  o.connect(g);g.connect(musicGain);o.start();o.stop(actx.currentTime+0.12)}
+function pauseMusic(){if(natureAudio){natureAudio.pause()}}
+function resumeMusic(){if(natureAudio){natureAudio.play().catch(()=>{})}}
 function toggleNature(){
-  initAudio();resumeAudio();
   natureOn=!natureOn;document.getElementById('natureToggle').classList.toggle('on',natureOn);
   if(natureOn){buildNature(natureType)}else{buildNature('off')}}
 document.getElementById('natureSel').addEventListener('change',e=>{natureType=e.target.value;
