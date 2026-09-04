@@ -31,7 +31,7 @@
   .screen canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
   .home,.med{flex:1 1 auto;min-height:0;position:relative;z-index:2;width:100%}
 
-  .home{padding:50px 20px 40px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+  .home{padding:50px 20px 100px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
   .home .top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
   .home .hello{font-size:25px;font-weight:700}
   .home .hello span{display:block;font-size:13px;color:var(--muted);font-weight:400;margin-top:4px}
@@ -75,11 +75,27 @@
   .sos-btn:hover{background:rgba(255,56,92,.3);color:#FF8FA3}
   .sos-btn.pulse{animation:sospulse 1.5s infinite}
   @keyframes sospulse{0%,100%{box-shadow:0 0 0 0 rgba(255,56,92,.5)}50%{box-shadow:0 0 0 8px rgba(255,56,92,0)}}
-  .screen.med-mode .big-start,.screen.med-mode .sos-btn{display:none}
-  .nav{display:flex;justify-content:space-around;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}
-  .nav span{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .screen.med-mode .big-start,.screen.med-mode .sos-btn,.screen.med-mode .nav{display:none}
+  .nav{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;padding:10px 0 14px;
+       border-top:1px solid var(--line);color:var(--muted);font-size:10px;background:rgba(10,7,16,.85);backdrop-filter:blur(6px);z-index:50}
+  .nav span{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 10px;border-radius:10px}
   .nav .on{color:var(--gold)}
-  .nav .ic{font-size:18px}
+  .nav .ic{font-size:17px}
+  .tab-screen{display:none;padding:56px 20px 90px;overflow-y:auto;position:relative;z-index:2;flex-direction:column;gap:12px}
+  .tab-screen .hello{font-size:22px;font-weight:700}
+  .tab-screen .hello span{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:3px}
+  .session-list{display:flex;flex-direction:column;gap:8px}
+  .session-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center}
+  .session-item .s-name{font-size:13px;font-weight:600}
+  .session-item .s-meta{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .session-item .s-time{font-size:11px;color:var(--amber);font-weight:600}
+  .empty{color:var(--muted);font-size:13px;text-align:center;margin-top:30px;line-height:1.6}
+  .stat-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .stat-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 8px;text-align:center}
+  .stat-num{font-size:26px;font-weight:300;color:var(--amber)}
+  .stat-lbl{font-size:10px;color:var(--muted);margin-top:4px}
+  .stat-note{color:var(--muted);font-size:12px;text-align:center;margin-top:16px;line-height:1.5}
+  .you-row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
 
   .med{display:none;padding:52px 24px 28px;align-items:center;justify-content:center;text-align:center;flex-direction:column}
   .med .breath-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}
@@ -165,9 +181,37 @@
           </div>
           <button class="big-start" id="bigStart" onclick="startSession()">Begin breathwork →</button>
           <button class="sos-btn" id="sosBtn" onclick="startSOS()">🚨 Need calm now</button>
-          <div class="nav">
-            <span class="on"><span class="ic">☾</span>Home</span><span><span class="ic">❋</span>Sessions</span><span><span class="ic">☰</span>Stats</span><span><span class="ic">◉</span>You</span>
+        </div>
+
+        <!-- SESSIONS -->
+        <div class="tab-screen" id="sessions">
+          <div class="top"><span>9:41</span><span>🔋</span></div>
+          <div class="hello">Your sessions<span>Every breath counts</span></div>
+          <div id="sessionList" class="session-list"></div>
+          <div class="empty" id="sessionEmpty">No sessions yet.<br>Start your first breathwork ✨</div>
+        </div>
+
+        <!-- STATS -->
+        <div class="tab-screen" id="stats">
+          <div class="top"><span>9:41</span><span>🔋</span></div>
+          <div class="hello">Your progress<span>Build the habit, feel the calm</span></div>
+          <div class="stat-cards">
+            <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Sessions</div></div>
+            <div class="stat-card"><div class="stat-num" id="statMinutes">0</div><div class="stat-lbl">Minutes</div></div>
+            <div class="stat-card"><div class="stat-num" id="statStreak">0</div><div class="stat-lbl">Day streak</div></div>
           </div>
+          <div class="stat-note" id="statNote">Complete a session to start tracking.</div>
+        </div>
+
+        <!-- YOU -->
+        <div class="tab-screen" id="you">
+          <div class="top"><span>9:41</span><span>🔋</span></div>
+          <div class="hello">Your space<span>Meditation, your way</span></div>
+          <div class="voice-row" style="margin-top:8px"><span>🗣️ Voice guide</span><div class="toggle on" id="voiceToggle2" onclick="toggleVoice()"><i></i></div></div>
+          <div class="you-row" style="margin-top:12px"><span>🌙 Default goal</span><span id="youGoal" style="color:var(--amber);font-weight:600">Relax</span></div>
+          <div class="you-row" style="margin-top:8px"><span>🧘 Default technique</span><span id="youTech" style="color:var(--amber);font-weight:600">Equal</span></div>
+          <div class="you-row" style="margin-top:8px"><span>⏱️ Default length</span><span id="youDur" style="color:var(--amber);font-weight:600">5 min</span></div>
+          <div class="stat-note" style="margin-top:18px">Settings are saved on this device.</div>
         </div>
 
         <!-- MEDITATION -->
@@ -185,6 +229,12 @@
             <button class="btn-round ghost" onclick="togglePause()">⏸</button>
             <button class="btn-round" onclick="endMed()">✕</button>
           </div>
+        </div>
+        <div class="nav" id="bottomNav">
+          <span class="on" data-tab="home" onclick="switchTab('home')"><span class="ic">☾</span>Home</span>
+          <span data-tab="sessions" onclick="switchTab('sessions')"><span class="ic">❋</span>Sessions</span>
+          <span data-tab="stats" onclick="switchTab('stats')"><span class="ic">☰</span>Stats</span>
+          <span data-tab="you" onclick="switchTab('you')"><span class="ic">◉</span>You</span>
         </div>
       </div>
     </div>
@@ -261,7 +311,55 @@ function speakCmd(cmd){ // 'in'|'out'|'hold'|'begin'|'complete'
 function stopSpeak(){Object.values(voiceAudios).forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}})}
 
 // ---- UI ----
-function show(id){home.style.display='none';med.style.display='none';id.style.display=id===med?'flex':'block'}
+const tabs=['home','sessions','stats','you'];
+function show(id){
+  [home,med].forEach(x=>x.style.display='none');
+  tabs.forEach(t=>{const el=document.getElementById(t);if(el)el.style.display='none'});
+  if(id===home){home.style.display='flex'}
+  else if(id===med){med.style.display='flex'}
+  else if(id){const el=document.getElementById(id);if(el){el.style.display='flex';refreshTab(id)}}
+  if(id!==med){screen.classList.remove('med-mode')}
+}
+function switchTab(t){
+  if(t==='home'){show(home)}
+  else{show(t)}
+  document.querySelectorAll('#bottomNav span').forEach(s=>s.classList.toggle('on',s.dataset.tab===t));
+}
+// ---- Session tracking (localStorage) ----
+function loadSessions(){try{return JSON.parse(localStorage.getItem('lumecai_sessions')||'[]')}catch(e){return[]}}
+function saveSessions(list){try{localStorage.setItem('lumecai_sessions',JSON.stringify(list))}catch(e){}}
+function refreshTab(t){
+  if(t==='sessions'){renderSessions()}
+  else if(t==='stats'){renderStats()}
+  else if(t==='you'){renderYou()}
+}
+function renderSessions(){
+  const list=loadSessions().reverse();
+  const wrap=document.getElementById('sessionList'),empty=document.getElementById('sessionEmpty');
+  empty.style.display=list.length?'none':'block';
+  wrap.innerHTML=list.map(s=>{
+    const d=new Date(s.ts);
+    const date=d.toLocaleDateString()+' · '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    return `<div class="session-item"><div><div class="s-name">${TECHS[s.tech]?TECHS[s.tech].name:s.tech}</div><div class="s-meta">${date}</div></div><div class="s-time">${s.dur} min</div></div>`;
+  }).join('');
+}
+function renderStats(){
+  const list=loadSessions();
+  const total=list.length;
+  const minutes=list.reduce((a,s)=>a+(s.dur||0),0);
+  const days=new Set(list.map(s=>new Date(s.ts).toDateString())).size;
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statMinutes').textContent=minutes;
+  document.getElementById('statStreak').textContent=days;
+  document.getElementById('statNote').textContent=total?'Keep your streak going ✨':'Complete a session to start tracking.';
+}
+function renderYou(){
+  const yn=['','Relax','Sleep','Focus','Energy'];
+  document.getElementById('youGoal').textContent=GOALS[goal]?GOALS[goal].name:yn[['','relax','sleep','focus','energy'].indexOf(goal)]||'Relax';
+  document.getElementById('youTech').textContent=TECHS[tech]?TECHS[tech].name:tech;
+  document.getElementById('youDur').textContent=dur+' min';
+  document.getElementById('voiceToggle2').classList.toggle('on',voiceOn);
+}
 function pickGoal(g){goal=g;document.querySelectorAll('.goal').forEach(x=>x.classList.remove('on'));document.getElementById('g-'+g).classList.add('on');
   // AI suggests technique for the goal
   pickTech(GOALS[g].tech,true)}
@@ -337,6 +435,8 @@ function startSession(){
 }
 function finishSession(){clearInterval(session);clearInterval(breathTimer);
   document.getElementById('breath').textContent='Complete ✨';speakCmd('complete');paused=true;
+  // record session
+  try{const list=loadSessions();list.push({tech:tech,dur:dur,ts:Date.now()});saveSessions(list)}catch(e){}
   setTimeout(()=>{paused=false;endMed()},2500)}
 function togglePause(){paused=!paused;const b=document.querySelector('#med .btn-round.ghost');
   b.textContent=paused?'▶':'⏸';
