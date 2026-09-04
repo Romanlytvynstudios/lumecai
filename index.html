@@ -199,20 +199,21 @@ let t=0,activeGlow=0.35,breathPhase=1,breathScale=1;
 const particles=[];for(let i=0;i<60;i++)particles.push({x:Math.random(),y:Math.random(),r:Math.random()*2+1,s:Math.random()*0.002+0.0005});
 function drawGlow(){t+=0.01;
   ctx.clearRect(0,0,w,h);
+  // cheap radial glow (recreated less often)
   const gx=w*0.5+Math.sin(t)*w*0.1,gy=h*0.4+Math.cos(t*0.7)*h*0.1,r=Math.min(w,h)*activeGlow;
   const g=ctx.createRadialGradient(gx,gy,0,gx,gy,r);
   g.addColorStop(0,`rgba(240,180,41,${0.28*activeGlow})`);g.addColorStop(1,'rgba(14,10,20,0)');
   ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-  // breathing particles (fireflies) — they spread on inhale, contract on exhale
+  // fewer particles for smoothness
   const spread=breathPhase;
   ctx.fillStyle=`rgba(245,194,107,${0.5*activeGlow})`;
-  for(const p of particles){
+  for(let idx=0;idx<particles.length;idx+=2){
+    const p=particles[idx];
     p.x+=p.s*Math.sin(t+p.y*10)*spread*3;
     p.y+=p.s*Math.cos(t+p.x*10)*spread*3;
     if(p.x<0)p.x=1;if(p.x>1)p.x=0;if(p.y<0)p.y=1;if(p.y>1)p.y=0;
-    const cx=p.x*w,cy=p.y*h;
     ctx.globalAlpha=0.4+0.4*spread;
-    ctx.beginPath();ctx.arc(cx,cy,p.r*spread+0.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(p.x*w,p.y*h,p.r*spread+0.5,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
   requestAnimationFrame(drawGlow)}
@@ -348,7 +349,7 @@ function endMed(){clearInterval(session);clearInterval(breathTimer);stopSpeak();
 function fmt(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
 
 // ---- Breathing ripple visual (canvas) ----
-let bcvs=null,bctx=null,bAnim=null,bTime=0;
+let bcvs=null,bctx=null,bAnim=null,bTime=0,smoothPhase=1;
 function breathCanvasReady(){
   if(bcvs)return;
   bcvs=document.getElementById('breathCanvas');
@@ -360,7 +361,7 @@ function breathCanvasReady(){
 function startBreathVisual(){
   breathCanvasReady();if(!bctx){return}
   cancelAnimationFrame(bAnim);
-  bTime=0;
+  bTime=0;smoothPhase=1;
   bAnim=requestAnimationFrame(drawBreath);
 }
 function stopBreathVisual(){
@@ -370,27 +371,28 @@ function stopBreathVisual(){
 function drawBreath(){
   if(!bctx){return}
   const w=bcvs.width,h=bcvs.height;bTime+=0.016;
+  // ease breathPhase smoothly so no jumps on inhale/exhale
+  smoothPhase += (breathPhase-smoothPhase)*0.03;
+  const ph=Math.max(0.15,smoothPhase); // keep both phases visible
   bctx.clearRect(0,0,w,h);
-  const cx=w/2,cy=h*0.40;
-  // slow ripple rings expanding outward, synchronized to breathPhase
-  const baseR=Math.min(w,h)*0.22;
-  const rings=6;
+  const cx=w/2,cy=h*0.40,minWH=Math.min(w,h);
+  const baseR=minWH*0.16;
+  // soft center glow (cheap - no per-frame gradient creation)
+  bctx.fillStyle=`rgba(240,180,41,${(0.05+ph*0.09).toFixed(3)})`;
+  bctx.beginPath();bctx.arc(cx,cy,baseR*(1.5+ph*0.8),0,Math.PI*2);bctx.fill();
+  // 3 slow ripple rings expanding outward
+  const rings=3;
   for(let i=0;i<rings;i++){
-    const ph=((bTime*0.6 + i/rings)%1);
-    const r=baseR*(0.8+ ph*1.1*(0.7+breathPhase));
-    const alpha=(1-ph)*0.32*(0.5+breathPhase*0.5);
-    if(r<Math.min(w,h)*0.9){
-      bctx.beginPath();bctx.arc(cx,cy,r,0,Math.PI*2);
+    const rr=((bTime*0.16 + i/rings)%1);
+    const radius=baseR*(0.6 + rr*1.4*(0.5+ph*0.5));
+    const alpha=(1-rr)*(0.30+ph*0.25);
+    if(radius<minWH*0.9){
+      bctx.beginPath();bctx.arc(cx,cy,radius,0,Math.PI*2);
       bctx.strokeStyle=`rgba(240,180,41,${alpha.toFixed(3)})`;
-      bctx.lineWidth=1.5+breathPhase*1.5;
+      bctx.lineWidth=1.5+ph*1.5;
       bctx.stroke();
     }
   }
-  // soft center glow
-  const g=bctx.createRadialGradient(cx,cy,0,cx,cy,baseR*1.5);
-  g.addColorStop(0,`rgba(240,180,41,${(0.12+breathPhase*0.18).toFixed(3)})`);
-  g.addColorStop(1,'rgba(240,180,41,0)');
-  bctx.fillStyle=g;bctx.fillRect(0,0,w,h);
   bAnim=requestAnimationFrame(drawBreath);
 }
 
