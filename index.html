@@ -204,16 +204,16 @@ function drawGlow(){t+=0.01;
   const g=ctx.createRadialGradient(gx,gy,0,gx,gy,r);
   g.addColorStop(0,`rgba(240,180,41,${0.28*activeGlow})`);g.addColorStop(1,'rgba(14,10,20,0)');
   ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-  // fewer particles for smoothness
-  const spread=breathPhase;
+  // particles stay visible on both inhale and exhale
+  const spread=Math.max(breathPhase,0.55); // keep visible on exhale
   ctx.fillStyle=`rgba(245,194,107,${0.5*activeGlow})`;
   for(let idx=0;idx<particles.length;idx+=2){
     const p=particles[idx];
     p.x+=p.s*Math.sin(t+p.y*10)*spread*3;
     p.y+=p.s*Math.cos(t+p.x*10)*spread*3;
     if(p.x<0)p.x=1;if(p.x>1)p.x=0;if(p.y<0)p.y=1;if(p.y>1)p.y=0;
-    ctx.globalAlpha=0.4+0.4*spread;
-    ctx.beginPath();ctx.arc(p.x*w,p.y*h,p.r*spread+0.5,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=0.45+0.35*spread;
+    ctx.beginPath();ctx.arc(p.x*w,p.y*h,p.r*(0.6+0.6*spread)+0.5,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
   requestAnimationFrame(drawGlow)}
